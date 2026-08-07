@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=cfq-direct
+#SBATCH --partition=cpu
+#SBATCH --nodes=1
+#SBATCH --ntasks=4
+#SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=1
+#SBATCH --time=01:00:00
+#SBATCH --output=cfq-direct-%j.out
+#SBATCH --error=cfq-direct-%j.err
+
+set -euo pipefail
+
+# ---- Site / image ----
+# module load apptainer    # enable only if your cluster requires it
+OCI_IMAGE_URI="ghcr.io/OWNER/REPOSITORY:TAG"
+CPP_SIF="/shared/path/cpppipeline.sif"
+
+# ---- Source: the runtime image does NOT contain cpp_Standard/cpp_Lite ----
+CPP_SOURCE_HOST="/path/to/cpp_Standard"
+CPP_SOURCE_CONTAINER="/workspace/src_pipe"
+CPP_EXECUTABLE="${CPP_SOURCE_CONTAINER}/Fourier_Quad_Pipe"
+BUILD_JOBS=4
+
+# ---- Required data for this example: init + main ----
+SCIENCE_ROOT_HOST="/path/to/science"
+SCIENCE_ROOT_CONTAINER="/data/archive/science"
+DQ_ROOT_HOST="/path/to/dqmask"
+DQ_ROOT_CONTAINER="/data/archive/dqmask"
+ASTROMETRY_CAT_HOST="/path/to/astrometry/catalog"
+ASTROMETRY_CAT_CONTAINER="/data/catalogs/AstroDir"  # must match compiled ASTROMETRY_CAT, or edit config + rebuild
+SOURCE_CAT_HOST="/path/to/source/catalog"
+SOURCE_CAT_CONTAINER="/data/catalogs/ExtSrcDir"
+PROCESS_DATA_HOST="/path/to/output"
+PROCESS_DATA_CONTAINER="/data/DataProcess"
+
+mkdir -p "$(dirname "$CPP_SIF")" "$PROCESS_DATA_HOST"
+
+# Acquire one shared SIF before MPI launch. Remove this block if SIF is pre-staged.
+if [[ ! -f "$CPP_SIF" ]]; then
+    apptainer pull "$CPP_SIF" "docker://$OCI_IMAGE_URI"
+fi
+
+BIND_ARGS=(
+    --bind "$CPP_SOURCE_HOST:$CPP_SOURCE_CONTAINER:rw"
+    --bind "$SCIENCE_ROOT_HOST:$SCIENCE_ROOT_CONTAINER:ro"
+    --bind "$DQ_ROOT_HOST:$DQ_ROOT_CONTAINER:ro"
+    --bind "$ASTROMETRY_CAT_HOST:$ASTROMETRY_CAT_CONTAINER:ro"
+    --bind "$SOURCE_CAT_HOST:$SOURCE_CAT_CONTAINER:ro"
+    --bind "$PROCESS_DATA_HOST:$PROCESS_DATA_CONTAINER:rw"
+)
+
+# Compile once on the shared source tree if no executable is present.
+if [[ ! -x "$CPP_SOURCE_HOST/Fourier_Quad_Pipe" ]]; then
+    apptainer exec --cleanenv --no-home "${BIND_ARGS[@]}" "$CPP_SIF" \
+        make -C "$CPP_SOURCE_CONTAINER" -j"$BUILD_JOBS"
+fi
+
+PIPELINE_ARGS=(
+    --run-extcat false
+    --run-init true
+    --run-main true
+    --run-rearr false
+    --run-fd false
+    --extcat-output "$SOURCE_CAT_CONTAINER"
+    --science-root "$SCIENCE_ROOT_CONTAINER"
+    --dq-root "$DQ_ROOT_CONTAINER"
+    --output-root "$PROCESS_DATA_CONTAINER"
+    --dataset "gband:c4d_"
+    --contains v1
+)
+
+# --cleanenv prevents host MPI contamination; forward only Slurm/PMI launch state.
+MPI_ENV_ARGS=()
+while IFS='=' read -r name value; do
+    case "$name" in
+        SLURM_*|PMI_*|PMI2_*) MPI_ENV_ARGS+=(--env "$name=$value") ;;
+    esac
+done < <(env)
+MPI_ENV_ARGS+=(--env OMPI_MCA_ess=pmi)
+
+srun --mpi=pmi2 \
+    apptainer exec --cleanenv --no-home \
+    "${MPI_ENV_ARGS[@]}" \
+    "${BIND_ARGS[@]}" \
+    --pwd "$PROCESS_DATA_CONTAINER" \
+    "$CPP_SIF" \
+    "$CPP_EXECUTABLE" "${PIPELINE_ARGS[@]}"

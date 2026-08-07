@@ -1,0 +1,30 @@
+{
+  "name": "CFQManual",
+  "version": "1.2.1",
+  "description": "Selectively loaded background manual for configuring, running, directly deploying on HPC, debugging, and modifying the C++ Fourier_Quad Pipeline.",
+  "author": {
+    "name": "Syoong-s",
+    "url": "https://github.com/Syoong-s"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CFQManual",
+    "shortDescription": "Fourier Quad Pipeline Neo (C++) knowledge and modification guide",
+    "longDescription": "Selective reference routing for Fourier Quad Pipeline Neo (C++): architecture, precise parameter tuning, CLI/runtime configuration, production runner generation, lightweight direct HPC Slurm deployment, debugging, and targeted developer changes.",
+    "developerName": "Syoong-s",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Selective knowledge routing",
+      "Pipeline architecture and stage mapping",
+      "Precise parameter selection and tuning",
+      "Runtime vs compile-time configuration",
+      "Docker and HPC runner generation",
+      "Lightweight direct HPC Slurm deployment",
+      "Standard/Lite branch awareness",
+      "Source-aware code modification guidance"
+    ],
+    "defaultPrompt": [
+      "Use $CFQManual to work with Fourier Quad Pipeline Neo (C++) and load only the references needed for this task."
+    ]
+  }
+}

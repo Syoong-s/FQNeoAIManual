@@ -1,0 +1,7 @@
+interface:
+  display_name: "CFQManual"
+  short_description: "Fourier Quad Pipeline Neo (C++) background manual"
+  default_prompt: "Use $CFQManual to configure, run, directly deploy on HPC, debug, or modify Fourier Quad Pipeline Neo (C++) using the smallest relevant reference set."
+
+policy:
+  allow_implicit_invocation: true

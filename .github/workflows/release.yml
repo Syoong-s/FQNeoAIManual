@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          test -n "${VERSION}"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate plugin metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          python3 - "${VERSION}" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          root = pathlib.Path('.')
+          version = sys.argv[1]
+
+          codex = json.loads((root / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
+          claude = json.loads((root / '.claude-plugin/plugin.json').read_text(encoding='utf-8'))
+          agents_market = json.loads((root / '.agents/plugins/marketplace.json').read_text(encoding='utf-8'))
+          claude_market = json.loads((root / '.claude-plugin/marketplace.json').read_text(encoding='utf-8'))
+
+          assert codex['name'] == 'CFQManual'
+          assert claude['name'] == 'CFQManual'
+          assert codex['version'] == version, (codex['version'], version)
+          assert claude['version'] == version, (claude['version'], version)
+          assert codex['author'] == {'name': 'Syoong-s', 'url': 'https://github.com/Syoong-s'}
+          assert claude['author'] == {'name': 'Syoong-s', 'url': 'https://github.com/Syoong-s'}
+          assert claude['homepage'] == 'https://github.com/Syoong-s/FQNeoAIManual'
+          assert claude['repository'] == 'https://github.com/Syoong-s/FQNeoAIManual'
+          assert agents_market['name'] == 'CFQManual-plugin'
+          assert agents_market['plugins'][0]['name'] == 'CFQManual'
+          assert claude_market['name'] == 'CFQManual-plugin'
+          assert claude_market['plugins'][0]['name'] == 'CFQManual'
+
+          skill = (root / 'skills/CFQManual/SKILL.md').read_text(encoding='utf-8')
+          assert re.search(r'^name:\s*CFQManual\s*$', skill, re.M)
+          assert (root / 'skills/CFQManual/agents/openai.yaml').is_file()
+          print('Plugin metadata validated for', version)
+          PY
+
+      - name: Package release payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          STAGE="CFQManual-plugin-${VERSION}"
+          DEST="dist/${STAGE}"
+
+          rm -rf dist
+          mkdir -p "${DEST}"
+
+          # Runtime plugin payload: copy the complete host metadata and skill trees.
+          cp -a .agents "${DEST}/"
+          cp -a .claude-plugin "${DEST}/"
+          cp -a .codex-plugin "${DEST}/"
+          cp -a skills "${DEST}/"
+
+          # User-facing documentation shipped with each release.
+          cp README.md README.zh-CN.md CHANGELOG.md LICENSE "${DEST}/"
+
+          # Keep accidental development/runtime cache files out of releases.
+          find "${DEST}" -type d -name '__pycache__' -prune -exec rm -rf {} +
+          find "${DEST}" -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+
+          test -f "${DEST}/.agents/plugins/marketplace.json"
+          test -f "${DEST}/.claude-plugin/plugin.json"
+          test -f "${DEST}/.claude-plugin/marketplace.json"
+          test -f "${DEST}/.codex-plugin/plugin.json"
+          test -f "${DEST}/skills/CFQManual/SKILL.md"
+
+          (
+            cd dist
+            tar -czf "${STAGE}.tar.gz" "${STAGE}"
+            zip -qr "${STAGE}.zip" "${STAGE}"
+            sha256sum "${STAGE}.tar.gz" "${STAGE}.zip" > checksums-sha256.txt
+          )
+
+          echo '=== Release payload ==='
+          find "${DEST}" -type f | sort
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "${TAG}" \
+            "dist/CFQManual-plugin-${VERSION}.tar.gz" \
+            "dist/CFQManual-plugin-${VERSION}.zip" \
+            "dist/checksums-sha256.txt" \
+            --title "${TAG}" \
+            --generate-notes

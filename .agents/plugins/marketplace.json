@@ -1,0 +1,12 @@
+{
+  "name": "CFQManual-plugin",
+  "plugins": [
+    {
+      "name": "CFQManual",
+      "source": {
+        "source": "local",
+        "path": "."
+      }
+    }
+  ]
+}

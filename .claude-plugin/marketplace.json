@@ -1,0 +1,14 @@
+{
+  "name": "CFQManual-plugin",
+  "owner": {
+    "name": "Syoong-s",
+    "url": "https://github.com/Syoong-s"
+  },
+  "plugins": [
+    {
+      "name": "CFQManual",
+      "source": ".",
+      "description": "Selective source-aware manual for the C++ Fourier_Quad Pipeline, including parameter tuning, production runner generation, lightweight direct HPC Slurm deployment, and code modification."
+    }
+  ]
+}

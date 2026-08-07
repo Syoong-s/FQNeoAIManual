@@ -1,0 +1,12 @@
+{
+  "name": "CFQManual",
+  "description": "Selectively loaded background manual for configuring, running, directly deploying on HPC, debugging, and modifying the C++ Fourier_Quad Pipeline.",
+  "version": "1.2.1",
+  "author": {
+    "name": "Syoong-s",
+    "url": "https://github.com/Syoong-s"
+  },
+  "homepage": "https://github.com/Syoong-s/FQNeoAIManual",
+  "repository": "https://github.com/Syoong-s/FQNeoAIManual",
+  "license": "MIT"
+}
