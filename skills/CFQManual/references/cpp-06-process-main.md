@@ -78,6 +78,7 @@ For a code change, load this router plus **only the affected stage file** and [c
 | Module | Files | Purpose |
 |:---|:---|:---|
 | `MPIScheduler` | `MPIScheduler.cpp/.hpp` | MPI init/finalize, master-worker distribution, barrier |
+| `OutputFile` | `OutputFile.hpp` | Checked text output; reports path/reason and aborts the MPI job on failure |
 | `NumericalRecipes` | `NumericalRecipes.cpp/.hpp` | RNG (`ran1`), sorting, interpolation (ported from NR) |
 | `FitsIO` | `FitsIO.cpp/.hpp` | CFITSIO wrappers for FITS image/catalog I/O |
 | `LinearSolve` | `LinearSolve.cpp/.hpp` | Linear algebra, eigen-decomposition (LAPACK), covariance spectrum |
@@ -87,9 +88,40 @@ For a code change, load this router plus **only the affected stage file** and [c
 | `ExternalCatalogReader` | `ExternalCatalogReader.cpp/.hpp` | External catalog column resolution and reading |
 | `PSFRecons` | `PSFRecons.cpp/.hpp` | PCA PSF reconstruction (Standard only, `PSF_Ms=1`) |
 
+### Output failure and path-length contract
+
+All text outputs created by `process_main` use `MainIO::OutputFile`; all FITS
+outputs pass through checked `FitsIO` create/write/close operations. Failure
+prints `Output creation failed` with rank, operation, path, and the OS/CFITSIO
+reason, then calls `MPI_Abort`. A worker must not merely return or call local
+`exit`, because the dynamic scheduler can otherwise strand other ranks in a
+receive or barrier.
+
+The Stage 1--9 producer/consumer path chain has been checked end to end. Chip
+products use `OutputLayout::chipPath` on both sides; exposure products remain
+flat in their type directory; DQ reads match initializer output at
+`dqmask/<EXPOSURE>/<EXPOSURE>_<CCDNUM>.fits`. The checked sequence is
+astro/norm -> head/check -> source and star candidates -> star power -> PSF
+products -> source power -> shear -> exposure info -> `_all.cat`; no current
+layer or suffix mismatch was found.
+
+`process_main` has no fixed 150-character `strl` limit. Its paths use
+`std::string` and are bounded by the filesystem and underlying I/O library.
+The default 150-character `--f77-max-path` check belongs only to
+`process_init` and can be disabled with `0`.
+
 ## Intermediate Products (under `stamps/`)
 
 Type-specific subdirectories:
+
+Chip-scoped products are sharded one additional level by exposure:
+`<type-directory>/<EXPOSURE>/<CHIP><suffix>`. This applies to `Norm`,
+`cat_Orig`, `dat_StarCanInfo`, `fits_StarCan`, `fits_StarCanN`,
+`fits_StarCanP`, `dat_SrcInfo`, `fits_Src`, `fits_Noise`, `fits_SrcP`,
+`dat_PsfFit`, `fits_PsfLocal`, `dat_Shear`, `dat_StarXY`, and
+`fits_PsfResi`; chip astrometry likewise uses
+`astrometry/dat_Astro/<EXPOSURE>/`. Exposure-scoped and CCD/PCA-global
+products remain directly in their type directories.
 
 | Directory | Content |
 |:---|:---|

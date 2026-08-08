@@ -21,7 +21,13 @@ This header contains the main scientific/numerical controls. Treat `constexpr` s
 |:---|:---:|:---|
 | `npx` | `3000` | Nominal CCD width (px) |
 | `npy` | `5000` | Nominal CCD height (px) |
-| `strl` | `150` | Max string length for internal buffers |
+
+There is no `strl` path limit in the live C++ main pipeline. The former
+`strl=150` declaration was unused and has been removed. Main paths use
+`std::string`; their practical limits come from the filesystem and the selected
+I/O library. The separate initializer compatibility guard defaults to 150 and
+is configured with `--f77-max-path` (see
+[cpp-05-process-init.md](cpp-05-process-init.md)).
 
 ### 4c. Split and background
 
