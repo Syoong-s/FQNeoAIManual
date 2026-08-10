@@ -8,11 +8,11 @@ The layout/partition constants below are compile-time. Output base/directory nam
 
 | Parameter | Default | Description |
 |:---|:---:|:---|
-| `ichi2` | `25` | Count of 24 shear fields + exposure chi2 after CCD_NUM |
+| `ichi2` | `29` | Count of 28 Stage 7 fields + exposure chi2 after CCD_NUM |
 | `CCD_COLUMN_COUNT` | `1` | Fixed CCD_NUM field count |
-| `ALL_CAT_TOTAL_COLUMNS` | `44` | `EXTCAT_TOTAL_COLUMNS + 1 + ichi2` = `18 + 1 + 25` |
+| `ALL_CAT_TOTAL_COLUMNS` | `48` | `EXTCAT_TOTAL_COLUMNS + 1 + ichi2` = `18 + 1 + 29` |
 | `externalCatalogColumns(options)` | `18` | Runtime-effective external width |
-| `allCatalogColumns(options)` | `44` | Runtime-effective row width |
+| `allCatalogColumns(options)` | `48` | Runtime-effective row width in pass-through mode |
 
 ### Spatial Spatial partitioning and output
 
@@ -142,6 +142,11 @@ External-catalog columns (0-based):
 | 18 | `col_ccd` (= `EXTCAT_TOTAL_COLUMNS`) |
 
 Per-source columns are derived: `ccd_num_cols * ext_cat + LensingConfig::index`.
+The final per-source layout is `gal_size_T`, `psf_size_T`, `delta_chi2`,
+`orth_ext`, then exposure `Chi2`. With the default 18-field external schema,
+their absolute zero-based columns are 43, 44, 45, 46, and 47 respectively.
+`FDData` stores `delta_chi2` and `orth_ext` for offline threshold calibration;
+the current reader applies no fixed cut to either statistic.
 
 ### Bad CCD Bad CCD list and chip-edge masking (DES)
 
@@ -156,4 +161,4 @@ Per-source columns are derived: `ccd_num_cols * ext_cat + LensingConfig::index`.
 
 ## Derived-width invariant
 
-`process_rearr` does not always assume 18 external fields at runtime. With explicit external-catalog projection, its effective external width is the projection-list length; the complete row width is `external_width + 1 CCD column + 25 process_main fields`. Keep `ExtCatConfig`, `ExternalCatalogReader`, `ProcessRearrConfig`, and downstream FD column assumptions consistent when changing the schema.
+`process_rearr` does not always assume 18 external fields at runtime. With explicit external-catalog projection, its effective external width is the projection-list length; the complete row width is `external_width + 1 CCD column + 29 process_main fields`. Keep `ExtCatConfig`, `ExternalCatalogReader`, `ProcessRearrConfig`, and downstream FD column assumptions consistent when changing the schema.

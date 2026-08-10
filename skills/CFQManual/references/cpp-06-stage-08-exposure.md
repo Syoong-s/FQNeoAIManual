@@ -22,7 +22,8 @@ After all ranks finish:
    ```
    N-valid-chip PSF-FWHM(arcsec) chi_d-stars nstar-per-chip cRVAL1 cRVAL2 expo_name
    ```
-5. The exposure chi2 is appended as the 25th field (`ichi2`) to each source row
+5. Stage 9 appends this exposure chi2 as the 29th process-main field
+   (`ichi2=28`, zero-based) after the 28-field Stage 7 row
 
 ### Key data
 

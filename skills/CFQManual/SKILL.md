@@ -107,5 +107,4 @@ For either mode, keep host paths separate from container paths and report unreso
 
 ## Developer-change contract
 
-For code iteration, load `cpp-11-code-modification.md` plus the exact affected phase/stage reference, then inspect the checkout. Prefer the smallest coherent patch. Do not mirror a Standard change into Lite until checking whether that code path exists there. After a source/compile-time change, rebuild the affected variant and validate the branch exercised by the change. Current variant Makefiles expose `all` and `clean`; do not assume historical `test-extcat-reader` or `test-rearr` Make targets exist.
-
+For code iteration, load `cpp-11-code-modification.md` plus the exact affected phase/stage reference, then inspect the checkout. Prefer the smallest coherent patch. Do not mirror a Standard change into Lite until checking whether that code path exists there. After a source/compile-time change, rebuild the affected variant and validate the branch exercised by the change. Current variant Makefiles expose `all`, `clean`, and the focused Stage 7 `test-point-source-statistics` target; do not assume historical `test-extcat-reader` or `test-rearr` Make targets exist.

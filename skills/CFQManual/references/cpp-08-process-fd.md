@@ -69,6 +69,8 @@ replacing Fortran common blocks:
 | `magg, magr, magi` | `vector<float>` | Magnitudes |
 | `sizerel` | `vector<float>` | Relative size |
 | `src_snr` | `vector<float>` | Source SNR |
+| `delta_chi2` | `vector<float>` | Stage 7 normalized PSF-minus-extended residual difference |
+| `orth_ext` | `vector<float>` | Stage 7 PSF-orthogonal extension projection |
 | `rra, ddec` | `vector<float>` | RA, Dec (degrees) |
 | `iexpo` | `vector<int>` | Exposure index (per-exposure mode) |
 | `snrf` | `vector<float>` | SNR_F (per-exposure mode) |
@@ -109,6 +111,16 @@ uncertainty (sigma) are estimated:
 4. Per-exposure mode: iterate per exposure with `stage1_snr`, `clip_nsigma`,
    `init_win_active/fallback`
 5. Apply the cut: remove sources with size < `S_cut`
+
+### Stage 7 point-source statistics are calibration inputs
+
+`ShearCatalogReader` copies `col_delta_chi2` and `col_orth_ext` into `FDData`
+for offline threshold calibration. The current `process_fd` implementation
+does not use either field in `StarCutCalculator` and applies no fixed
+`delta_chi2`/`orth_ext` selection. Point-source removal therefore remains the
+existing star-bar size-magnitude procedure unless a separately calibrated cut
+is deliberately implemented. `gal_size_T` and `psf_size_T` remain present in
+the 48-column input row but are not copied into dedicated `FDData` arrays.
 
 ## Spatial Binning
 
@@ -204,6 +216,13 @@ FD uses absolute 0-based column indices derived from `LensingConfig`:
 - `col_ccd` = `EXTCAT_TOTAL_COLUMNS` (18)
 - Per-source columns: `ccd_num_cols * ext_cat + LensingConfig::index`
   (e.g., `col_g1 = 19 * 1 + 16 = 35`)
+- New Stage 7 morphology columns in the default 48-column schema:
+  `col_galsizeT=43`, `col_psfsizeT=44`, `col_delta_chi2=45`,
+  `col_orth_ext=46`; appended exposure `col_chi2=47`
+
+`FDConfig::ICHI2` is the row count (`48` by default), not the zero-based
+exposure-chi2 index. Compile-time assertions require `delta_chi2` to follow
+`psf_size_T`, `orth_ext` to follow `delta_chi2`, and `Chi2` to end the row.
 
 ## Relationship to the Fortran Measurement Program
 

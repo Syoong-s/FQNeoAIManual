@@ -39,21 +39,21 @@ writes spatially sorted subcatalogs. It runs **per dataset** after
 Each row has `allCatalogColumns(options)` fields:
 
 ```
-[external catalog fields] [CCD_NUM] [25 shear fields]
-         18 (default)          1       24 source + 1 exposure chi2
+[external catalog fields] [CCD_NUM] [29 process-main fields]
+         18 (default)          1       28 Stage 7 + 1 exposure chi2
 ```
 
-Default total: `18 + 1 + 25 = 44` columns.
+Default total: `18 + 1 + 29 = 48` columns.
 
 ### Derived column layout (compile-time, validated with `static_assert`)
 
 | Constant | Value | Description |
 |:---|:---:|:---|
-| `ichi2` | `25` | Count of 24 shear fields + exposure chi2 after CCD_NUM |
+| `ichi2` | `29` | Count of 28 Stage 7 fields + exposure chi2 after CCD_NUM |
 | `CCD_COLUMN_COUNT` | `1` | Fixed CCD_NUM field count |
-| `ALL_CAT_TOTAL_COLUMNS` | `44` | `EXTCAT_TOTAL_COLUMNS + 1 + ichi2` |
+| `ALL_CAT_TOTAL_COLUMNS` | `48` | `EXTCAT_TOTAL_COLUMNS + 1 + ichi2` |
 | `externalCatalogColumns(options)` | `18` | Runtime-effective external width |
-| `allCatalogColumns(options)` | `44` | Runtime-effective row width |
+| `allCatalogColumns(options)` | `48` | Runtime-effective row width in pass-through mode |
 
 ### Column resolution
 

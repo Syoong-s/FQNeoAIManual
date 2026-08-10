@@ -74,7 +74,9 @@ is configured with `--f77-max-path` (see
 |:---|:---:|:---|
 | `ngal_max` | `4000` | Max galaxies per chip |
 | `nstar_max` | `2000` | Max stars per chip |
-| `npara` | `25` | Shear catalog fields per source |
+| `src_npara` | `12` | Shared source/PSF/FFT2 internal row width through `iSNR_F` |
+| `shear_cat_ncols` | `28` | Stage 7 row width through `iorth_ext`; excludes exposure chi2 |
+| `expo_cat_ncols` | `29` | Exposure-catalog width: 28 Stage 7 fields plus exposure chi2 |
 | `npd` | `33` | PU polynomial distortion terms |
 | `NMAX_EXPO` | `25000` | Max exposures per run |
 | `NMAX_CHIP` | `62` | Max CCDs per exposure |
@@ -98,7 +100,21 @@ is configured with `--f77-max-path` (see
 | `gal_smooth` | `0` (Std) / `0` (Lite) | Galaxy smoothing parameter |
 | `star_smooth` | `2` | Star smoothing parameter |
 
-### 4i. Noise-sigma estimation (`Set_Sig` mode-bar estimator)
+### 4i. Stage 7 Fourier morphology measurements
+
+All values below are compile-time constants shared by Standard and Lite.
+`point_stat_eps` and `point_stat_min_corr` are numerical validity guards, not
+science-selection thresholds.
+
+| Parameter | Default | Description |
+|:---|:---:|:---|
+| `size_fit_rmax` | `4` | Radius in Fourier pixels of the equal-weight low-frequency curvature fit that produces `gal_size_T` and `psf_size_T` |
+| `point_stat_beta` | `0.10` | Fixed survey-wide shape of the extended template $P(k)\exp[-\beta k^2/k_{\max}^2]$; not fitted per source |
+| `point_stat_k_frac` | `0.90` | Fraction of the PSF reliable radius used as $k_{\max}$ for `delta_chi2` and `orth_ext` |
+| `point_stat_eps` | `1.0e-20` | Positive floor for singularity rejection and scalar normalization |
+| `point_stat_min_corr` | `1.0e-6` | Minimum absolute normalized source-PSF projection required for a valid `orth_ext` |
+
+### 4j. Noise-sigma estimation (`Set_Sig` mode-bar estimator)
 
 These constants mirror the Fortran `sig_para.inc`. They control the robust
 mode-bar noise-plane estimator: block seeds -> sky mode -> lower-side width ->
@@ -128,7 +144,7 @@ symmetric clipped plane fits -> validation -> normalization.
 | `sig_scale_s2` | `1.027786` | Stage-2 calibration (active) |
 | `sig_scale` | `1.027786` | Active selector (=`sig_scale_s2`) |
 
-### 4j. Standard-only PCA/multi-scale PSF parameters
+### 4k. Standard-only PCA/multi-scale PSF parameters
 
 Compiled only by `cpp_Standard`, active only when `PSF_Ms=1`. Absent in Lite.
 
@@ -143,7 +159,7 @@ Compiled only by `cpp_Standard`, active only when `PSF_Ms=1`. Absent in Lite.
 | `pca_negative_eigenvalue_threshold` | `-1.0e-5` | Invalid-eigenvalue threshold |
 | `nmax_star_pchip` | `1000000` | Reserved legacy PCA star capacity (unused) |
 
-### 4k. File-system paths
+### 4l. File-system paths
 
 `SOURCE_CAT` is special: the header supplies the initial value, but the unified driver overwrites it from the runtime extcat output path before phases execute. `ASTROMETRY_CAT`, `FLAT_PATH`, and `PSF_PATH` are not exposed through `RuntimeOptions` in the current driver.
 
@@ -154,24 +170,24 @@ Compiled only by `cpp_Standard`, active only when `PSF_Ms=1`. Absent in Lite.
 | `FLAT_PATH` | - | `/lustre/.../DES_super_flat/i2014` (Std only) | Per-chip flat FITS files |
 | `PSF_PATH` | - | `"hahahaha"` (Std only) | External PSF image directory |
 
-### 4l. Internal catalog column indices (0-based)
+### 4m. Internal catalog column indices (0-based)
 
 Zero-based positions in the per-source result rows. Changing them changes the
 internal/output layout and requires coordinated reader/writer changes.
 
 | Parameter | Default | Field |
 |:---|:---:|:---|
-| `iid` | `0` | ID |
-| `ipixx` | `1` | Pixel x |
-| `ipixy` | `2` | Pixel y |
-| `isig` | `3` | Reserved (unused) |
-| `istar` | `4` | Star indicator |
+| `iid` | `0` | Historical index name; Stage 7 overwrites this slot with normalized PSF-model `poly_chi2` |
+| `ipixx` | `1` | Source-center pixel x (`xc`) |
+| `ipixy` | `2` | Source-center pixel y (`yc`) |
+| `isig` | `3` | Local source noise sigma |
+| `istar` | `4` | Number of PSF stars available for the chip (`nstar`) |
 | `i_imax` | `5` | Peak x |
 | `i_jmax` | `6` | Peak y |
 | `ih_flux` | `7` | Half-light flux |
 | `ih_area` | `8` | Source area |
 | `iflag` | `9` | Quality flag |
-| `iPSF` | `10` | PSF/SNR field |
+| `iPSF` | `10` | Local PSF FWHM |
 | `iSNR_F` | `11` | Fourier S/N |
 | `ira` | `12` | Right ascension |
 | `idec` | `13` | Declination |
@@ -185,9 +201,13 @@ internal/output layout and requires coordinated reader/writer changes.
 | `icos2` | `21` | Spin-2 cosine |
 | `isin2` | `22` | Spin-2 sine |
 | `iparity` | `23` | WCS parity |
-| `ichi2` | `24` | Exposure chi2 (index 24, count 25) |
+| `igalsizeT` | `24` | Galaxy low-frequency Fourier-power curvature size $T$ (pixel²) |
+| `ipsfsizeT` | `25` | Local-PSF low-frequency Fourier-power curvature size $T$ (pixel²) |
+| `idelta_chi2` | `26` | Normalized PSF-minus-extended residual difference |
+| `iorth_ext` | `27` | PSF-orthogonal extension projection |
+| `ichi2` | `28` | Exposure chi2 appended after the 28-field Stage 7 row (index 28, count 29) |
 
-### 4m. Calibration and camera geometry
+### 4n. Calibration and camera geometry
 
 | Parameter | Default | Description |
 |:---|:---:|:---|

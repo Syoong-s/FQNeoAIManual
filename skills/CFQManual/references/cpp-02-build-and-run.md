@@ -55,14 +55,28 @@ make CXX=/path/to/mpicxx \
 
 ### Validation targets
 
-The current variant Makefiles expose `all` and `clean`; they do **not** define `test-extcat-reader` or `test-rearr` Make targets. After a clean build, use the executable's parser as a low-cost validation and then run a representative phase/smoke test appropriate to the change:
+The current variant Makefiles expose `all`, `clean`, and the focused Stage 7
+`test-point-source-statistics` target. They do **not** define
+`test-extcat-reader` or `test-rearr` Make targets. After a clean build, use the
+executable's parser as a low-cost validation and then run a representative
+phase/smoke test appropriate to the change:
 
 ```bash
 make clean && make -j4
 ./Fourier_Quad_Pipe --help
 ```
 
-If the available source tree contains standalone tests, invoke those tests by their actual current build/run instructions rather than assuming a Make target exists.
+For Stage 7 point-source morphology or catalog-width changes, run in the
+affected variant:
+
+```bash
+make test-point-source-statistics
+```
+
+The target builds `tests/PointSourceStatisticsTest.cpp` with the production
+module and validates synthetic PSF-like/extended inputs plus the 28/29-column
+contract. If another standalone test exists, invoke it by its actual current
+instructions rather than assuming a Make target exists.
 
 ### Clean
 

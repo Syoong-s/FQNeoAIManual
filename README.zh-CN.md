@@ -8,6 +8,7 @@ CFQManual 是面向 **Fourier Quad Pipeline Neo (C++)** 的选择性加载背景
 - **按任务选择性加载**：参数文档按配置域拆分，`process_main` 按 9 个数值 stage 拆分。
 - **叶子文档保持详细**：对应 reference 保留文件、namespace/函数、参数、算法流程、输入输出、耦合约束和修改注意事项。
 - **区分运行时与编译期**：只有进入 `RuntimeOptions` 的字段才能被 CLI 覆盖；大量科学参数仍需修改头文件并重新编译，部分值直接写在实现函数内。
+- **阶段 7 形态测量契约**：完整记录低频曲率 size、Fourier 功率谱点源统计量的公式、有效性规则、星表列与下游消费方式。
 - **双 HPC 部署模式**：既保留生产级 runner，也支持轻量 direct-HPC 模式，可生成获取/构建 SIF、挂载目录、必要时编译并通过 `srun` 直接运行 Pipeline 的 Slurm。
 - **自带 runner 模板**：包含 Docker `.env`、生产 `cpppipeline.env`、direct-HPC env/Slurm 模板和字段级生成规则。
 - **正确处理 Standard/Lite**：Lite 中被冻结的 8 条分支是被物理删除，而不是简单设置不同常量。
@@ -15,7 +16,7 @@ CFQManual 是面向 **Fourier Quad Pipeline Neo (C++)** 的选择性加载背景
 ## 插件结构
 
 ```text
-CFQManual-plugin-1.2.1/
+CFQManual-plugin-1.3.0/
 ├── .agents/plugins/marketplace.json
 ├── .codex-plugin/plugin.json
 ├── .claude-plugin/
@@ -55,14 +56,14 @@ codex plugin add CFQManual@CFQManual-plugin
 ### Codex
 
 ```bash
-codex plugin marketplace add /absolute/path/to/CFQManual-plugin-1.2.1
+codex plugin marketplace add /absolute/path/to/CFQManual-plugin-1.3.0
 codex plugin add CFQManual@CFQManual-plugin
 ```
 
 ### Claude Code
 
 ```bash
-claude --plugin-dir /absolute/path/to/CFQManual-plugin-1.2.1
+claude --plugin-dir /absolute/path/to/CFQManual-plugin-1.3.0
 ```
 
 ## 使用
@@ -74,8 +75,8 @@ Skill 名称为 `CFQManual`。在 Codex 中可以显式调用 `$CFQManual`；当
 `.github/workflows/release.yml` 在推送 `v*` tag 时自动运行。例如：
 
 ```bash
-git tag -a v1.2.1 -m "Release v1.2.1"
-git push origin v1.2.1
+git tag -a v1.3.0 -m "Release v1.3.0"
+git push origin v1.3.0
 ```
 
 工作流会先检查 tag 版本与 Codex/Claude manifest 版本一致，再完整打包 `.agents/`、`.claude-plugin/`、`.codex-plugin/` 和 `skills/`，同时加入 README、CHANGELOG、LICENSE，生成 ZIP、tar.gz 和 SHA256，并发布到 GitHub Release。

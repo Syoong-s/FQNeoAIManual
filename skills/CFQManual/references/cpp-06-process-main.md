@@ -86,6 +86,8 @@ For a code change, load this router plus **only the affected stage file** and [c
 | `UniversalUtils` | `UniversalUtils.cpp/.hpp` | Shared utilities (path, polynomial fitting, catalog) |
 | `ExStar` | `ExStar.cpp/.hpp` | Star extraction and classification |
 | `ExternalCatalogReader` | `ExternalCatalogReader.cpp/.hpp` | External catalog column resolution and reading |
+| `CurvatureSizeMeasurement` | `CurvatureSizeMeasurement.cpp`, declared in `ShearMeasurement.hpp` | Stage 7 low-frequency `gal_size_T`/`psf_size_T` fits |
+| `PointSourceStatistics` | `PointSourceStatistics.cpp/.hpp` | Stage 7 `delta_chi2`/`orth_ext` Fourier morphology measurements |
 | `PSFRecons` | `PSFRecons.cpp/.hpp` | PCA PSF reconstruction (Standard only, `PSF_Ms=1`) |
 
 ### Output failure and path-length contract

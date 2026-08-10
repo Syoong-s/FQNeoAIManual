@@ -76,6 +76,11 @@ The following differences are structural; exact line counts are intentionally om
 | `FourierTransformSt1.cpp` | Removes the Standard external-PSF early-return branch because Lite cannot enable external PSF |
 | `CatalogCombiner.cpp` | Flattens the `ext_cat=1` path and removes the alternate no-external-catalog branch |
 
+Both Makefiles include `CurvatureSizeMeasurement.cpp` and
+`PointSourceStatistics.cpp`, and both expose the same
+`test-point-source-statistics` target. The new 28-field Stage 7 / 29-field
+exposure catalog contract is shared across variants.
+
 ## Unchanged Files
 
 These are byte-for-byte copies between variants:
@@ -90,6 +95,9 @@ These are byte-for-byte copies between variants:
 - `FourierTransformSt1.hpp`
 - `CatalogCombiner.hpp`
 - `ShearMeasurement.hpp`
+- `CurvatureSizeMeasurement.cpp`
+- `PointSourceStatistics.cpp/.hpp`
+- `PointSourceStatisticsTest.cpp`
 
 ## Deliberately Retained Unused Code
 

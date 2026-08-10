@@ -93,7 +93,7 @@ cpp_Standard/
 |:---|:---|:---|:---|
 | `process_extcat` | `main.cpp` | `ExtCatConfig.hpp` | `src/process_extcat/process_extcat.cpp` |
 | `process_init` | `main.cpp` | `InitConfig.hpp` | `src/process_init/{process_init,Initializer,FitsExtractor}.cpp` |
-| `process_main` | `src/process_main/process_main.cpp` | `LensingConfig.hpp` | `src/process_main/{PreProcess,Astrometry,SourceExtractor,FourierTransformSt1,PSFModel,PSFRecons,FourierTransformSt2,ShearMeasurement,ExposureInfo,CatalogCombiner,...}.cpp` |
+| `process_main` | `src/process_main/process_main.cpp` | `LensingConfig.hpp` | `src/process_main/{PreProcess,Astrometry,SourceExtractor,FourierTransformSt1,PSFModel,PSFRecons,FourierTransformSt2,ShearMeasurement,CurvatureSizeMeasurement,PointSourceStatistics,ExposureInfo,CatalogCombiner,...}.cpp` |
 | `process_rearr` | `main.cpp` | `ProcessRearrConfig.hpp` | `src/process_rearr/{process_rearr,CatalogRearranger}.cpp` |
 | `process_fd` | `main.cpp` | `FDConfig.hpp` | `src/process_fd/{process_fd,ShearCatalogReader,StarCutCalculator,KMeansClusterer,FDMeasurement,QuadraticFitting}.cpp` |
 
@@ -171,7 +171,7 @@ prime factor decomposition. Each stage corresponds to a unique prime:
 | 4 | 7 | FFT-1 | Power spectrum for star candidates |
 | 5 | 11 | PSF modeling | χ² star selection, spatial polynomial (+ PCA if `PSF_Ms=1`) |
 | 6 | 13 | FFT-2 | Power spectrum for galaxies |
-| 7 | 17 | Shear measurement | Fourier_Quad shear estimation (5 estimators) |
+| 7 | 17 | Shear measurement | Fourier_Quad shear estimation (5 estimators), Fourier-power curvature sizes, and point-source morphology statistics |
 | 8 | 19 | Exposure info | Chip -> exposure diagnostics aggregation |
 | 9 | 23 | Catalog combine | Quality cuts, distortion calibration, merged catalog |
 
@@ -192,7 +192,10 @@ For detailed stage implementation, see
 | `npx` × `npy` | 3000 × 5000 | `LensingConfig.hpp` | Nominal CCD size (px) |
 | `NMAX_EXPO` | 25000 | `LensingConfig.hpp` | Max exposures per run |
 | `NMAX_CHIP` | 62 | `LensingConfig.hpp` | Max CCDs per exposure |
-| `npara` | 25 | `LensingConfig.hpp` | Shear catalog fields per source |
+| `src_npara` | 12 | `LensingConfig.hpp` | Shared source/PSF/FFT2 internal row width through `iSNR_F` |
+| `shear_cat_ncols` | 28 | `LensingConfig.hpp` | Stage 7 row width through `orth_ext` |
+| `expo_cat_ncols` | 29 | `LensingConfig.hpp` | Stage 9 width after appending exposure `Chi2` |
+| `size_fit_rmax` | 4 | `LensingConfig.hpp` | Fourier-pixel radius of the `gal_size_T`/`psf_size_T` curvature fit |
 | `EXTCAT_TOTAL_COLUMNS` | 18 | `ExtCatConfig.hpp` | Canonical external catalog width |
 | `SKY_GRID_DEGREES` | 0.1 | `ProcessRearrConfig.hpp` | Rearrangement sky-tile width (°) |
 | `fd_num` | 21 | `FDConfig.hpp` | FD test spatial bins |

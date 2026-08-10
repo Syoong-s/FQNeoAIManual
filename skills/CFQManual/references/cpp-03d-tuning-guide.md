@@ -17,6 +17,9 @@ Use this file when the user describes a desired behavior rather than naming a sy
 | Change galaxy/star Fourier smoothing | `gal_smooth`, `star_smooth` | Both currently default to 0/2 respectively; rebuild |
 | Change Set_Sig background/noise behavior | `sig_*` constants in `LensingConfig.hpp` + `PreProcess` | Scientific calibration-sensitive; change as a group only with validation |
 | Change FQ PSF-radius window | local `PSFr_ratio=0.75f` in `ShearMeasurement::getShear` | Not a config constant |
+| Change the low-frequency curvature-size fit scale | `size_fit_rmax` + `measurePowerCurvatureSize` | Compile-time; changes both `gal_size_T` and `psf_size_T`; validate positivity/invalid fraction |
+| Tune point-source versus extended-template separation | `point_stat_beta`, then `point_stat_k_frac` | Compile-time; calibrate offline on labeled survey data and rebuild; do not fit `beta` per source |
+| Change point-statistic numerical rejection | `point_stat_eps`, `point_stat_min_corr` | Numerical guards, not science cuts; inspect invalid rate before changing |
 | Change rearranged subcatalog size | `TARGET_SUBCAT_ROWS` | Compile-time; affects k-d partition count, not sky-grid resolution |
 | Change rearrangement sky resolution | `SKY_GRID_DEGREES`, `RA_BIN_COUNT`, `DEC_BIN_COUNT` together | Preserve consistency among the three |
 | Change FD spatial bin count/range | `fd_num`, `gf_lim` | Compile-time; affects output and fitting arrays |

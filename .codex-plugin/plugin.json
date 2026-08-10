@@ -1,6 +1,6 @@
 {
   "name": "CFQManual",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Selectively loaded background manual for configuring, running, directly deploying on HPC, debugging, and modifying the C++ Fourier_Quad Pipeline.",
   "author": {
     "name": "Syoong-s",

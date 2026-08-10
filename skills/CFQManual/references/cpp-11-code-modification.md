@@ -16,7 +16,9 @@ Use this reference for developer changes. Before editing, locate the exact symbo
 | Stage 4 star FFT | `FourierTransformSt1.cpp/.hpp` |
 | Stage 5 PSF | `PSFModel.cpp/.hpp`; Standard PCA also `PSFRecons.cpp/.hpp` |
 | Stage 6 galaxy FFT | `FourierTransformSt2.cpp/.hpp` |
-| Stage 7 Fourier_Quad estimator | `ShearMeasurement.cpp/.hpp` |
+| Stage 7 Fourier_Quad estimator and integration | `ShearMeasurement.cpp/.hpp` |
+| Stage 7 curvature sizes | `CurvatureSizeMeasurement.cpp`, declaration in `ShearMeasurement.hpp` |
+| Stage 7 point-source statistics | `PointSourceStatistics.cpp/.hpp`, `tests/PointSourceStatisticsTest.cpp` |
 | Stage 8 exposure diagnostics | `ExposureInfo.cpp/.hpp` |
 | Stage 9 combine/calibration | `CatalogCombiner.cpp/.hpp` |
 | Rearrangement schema/partitioning | `config/ProcessRearrConfig.hpp`, `src/process_rearr/` |
@@ -37,7 +39,7 @@ Use this reference for developer changes. Before editing, locate the exact symbo
 6. **Make the smallest coherent patch.** Preserve current conventions and avoid unrelated refactors unless required.
 7. **Handle Standard/Lite deliberately.** Shared behavior may need parallel edits; deleted Lite branches must not be reintroduced accidentally.
 8. **Rebuild the affected variant** when source or compile-time config changes.
-9. **Validate the branch exercised by the change.** At minimum, clean build and `./Fourier_Quad_Pipe --help`; then use a representative phase/MPI smoke test. The current Makefiles do not provide `test-extcat-reader` or `test-rearr` targets.
+9. **Validate the branch exercised by the change.** At minimum, clean build and `./Fourier_Quad_Pipe --help`; then use a representative phase/MPI smoke test. For Stage 7 point-source morphology or its catalog width, also run `make test-point-source-statistics`. The current Makefiles do not provide `test-extcat-reader` or `test-rearr` targets.
 10. **Report exact scope:** files/symbols changed, old/new behavior, rebuild requirement, validation performed, and any cross-variant divergence left intentionally.
 
 ## Common patterns
@@ -78,7 +80,7 @@ Prefer runtime explicit projection when the change is dataset-specific. For a ca
 - `ProcessRearrConfig::externalCatalogColumns/allCatalogColumns`;
 - Stage-9 output headers and downstream consumers.
 
-Do not hard-code 44 total columns when explicit projection is enabled; runtime width can differ.
+Do not hard-code the default 48 total columns when explicit projection is enabled; runtime width can differ. The process-main suffix is fixed at 29 fields (28 Stage 7 fields plus exposure `Chi2`), while the external prefix width can vary.
 
 ### Change Stage-9 shear calibration
 
@@ -92,7 +94,12 @@ Lite has deleted eight Standard branches: alternate astrometry, flat/mask branch
 
 The Makefiles explicitly enumerate `SRCS`. For a new `.cpp`, add it to the appropriate variant's `SRCS`; add include paths/libs only when necessary. If the source is Standard-only (for example a restored PCA feature), do not blindly add it to Lite.
 
-The current Makefile has only `all` and `clean`. If you add tests, choose an explicit test build/run mechanism and document it; do not assume historical test target names exist.
+The current Makefiles have `all`, `clean`, and
+`test-point-source-statistics`. The focused target compiles the production
+point-source module with `tests/PointSourceStatisticsTest.cpp`; it does not
+exercise the full Stage 7 I/O path or the curvature-size fitter. If you add
+other tests, choose an explicit build/run mechanism and document it; do not
+assume historical test target names exist.
 
 ## Debugging orientation
 

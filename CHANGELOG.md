@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.3.0 - 2026-08-10
+
+- Synchronized Stage 7 with the current C++ pipeline's `gal_size_T` and
+  `psf_size_T` low-frequency Fourier-power curvature estimators.
+- Documented the single-beta `delta_chi2` and `orth_ext` point-source
+  morphology statistics, including their reliable Fourier window, taper,
+  formulas, validity sentinels, interpretation, and offline-calibration
+  boundary.
+- Updated the Stage 7, exposure, combination, rearrangement, and FD catalog
+  contracts from 24/25/44 columns to 28/29/48 columns.
+- Replaced the removed `npara` description with the live `src_npara`,
+  `shear_cat_ncols`, and `expo_cat_ncols` symbols.
+- Added the current `test-point-source-statistics` Make target to build and
+  developer-validation guidance for both Standard and Lite.
+
 ## 1.2.1 - 2026-08-08
 
 - Removed the upstream source-repository snapshot files and routing.
